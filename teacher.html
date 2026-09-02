@@ -1,0 +1,75 @@
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = 'https://dhprptwutteaudkpools.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRocHJwdHd1dHRlYXVka3Bvb2xzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMTQ0MDksImV4cCI6MjEwMzg5MDQwOX0.AThUkbpOkzB-IF_MzekPd0ulbWwm71Lmq2lWU1cXlkY';
+  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let allSubmissions = [];
+  let currentClassFilter = 'ALL';
+  let selectedStudentId = null;
+
+  window.onload = async () => {
+    await fetchInitialData(); // 1. 처음 접속 시 기존 제출 데이터 불러오기
+    subscribeRealtime();      // 2. 실시간 이벤트 구독 시작
+  };
+
+  // 1. 초기 데이터 로드
+  async function fetchInitialData() {
+    const { data, error } = await supabase
+      .from('email_submissions')
+      .select('*')
+      .order('created_at', { ascending: true });
+
+    if (!error && data) {
+      allSubmissions = data;
+      renderChips();
+    }
+  }
+
+  // 2. Supabase Realtime 구독 설정
+  function subscribeRealtime() {
+    supabase
+      .channel('public:email_submissions')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'email_submissions' },
+        (payload) => {
+          console.log('새로운 제출 발생:', payload.new);
+          // 새 제출건을 배열에 추가하고 화면 갱신
+          allSubmissions.push(payload.new);
+          renderChips();
+          showNotification(`${payload.new.student_info} 학생이 새 글을 제출했습니다!`);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'email_submissions' },
+        (payload) => {
+          console.log('수정본 제출 발생:', payload.new);
+          // 기존 학생 데이터 업데이트
+          const index = allSubmissions.findIndex(s => s.id === payload.new.id);
+          if (index !== -1) {
+            allSubmissions[index] = payload.new;
+            renderChips();
+            
+            // 현재 교사가 보고 있는 학생이 수정본을 냈다면 뷰어도 즉시 업데이트
+            if (selectedStudentId === payload.new.id) {
+              selectStudent(payload.new.id);
+            }
+          }
+        }
+      )
+      .subscribe();
+  }
+
+  // 알림 메시지 토스트 (선택 구현)
+  function showNotification(msg) {
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#2c3e50; color:white; padding:12px 20px; border-radius:8px; z-index:1000; font-size:14px;';
+    toast.innerText = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+
+  // [기존 filterClass, renderChips, selectStudent 로직은 동일하게 유지]
+</script>
