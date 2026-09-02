@@ -1,0 +1,66 @@
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // 1. Supabase 클라이언트 초기화 (프로젝트 URL과 Anon Key 입력)
+  const SUPABASE_URL = 'https://dhprptwutteaudkpools.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRocHJwdHd1dHRlYXVka3Bvb2xzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMTQ0MDksImV4cCI6MjEwMzg5MDQwOX0.AThUkbpOkzB-IF_MzekPd0ulbWwm71Lmq2lWU1cXlkY';
+  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let currentSubmissionId = null; // 제출 후 생성된 DB ID 저장용
+
+  // 2. 최초 제출 및 AI 피드백 수신
+  document.getElementById('emailForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const studentInfo = document.getElementById('studentInfo').value.trim();
+    const originalEmail = document.getElementById('emailContent').value.trim();
+
+    // AI API 호출 (기존 백엔드 API 호출)
+    const res = await fetch('/api/review', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ studentInfo, emailContent: originalEmail })
+    });
+    const feedbackData = await res.json();
+
+    // Supabase DB에 원문 및 AI 피드백 저장 (INSERT)
+    const { data, error } = await supabase
+      .from('email_submissions')
+      .insert([{
+        student_info: studentInfo,
+        original_email: originalEmail,
+        ai_feedback: feedbackData,
+        status: 'submitted'
+      }])
+      .select();
+
+    if (error) {
+      alert("DB 저장 중 오류가 발생했습니다.");
+      return;
+    }
+
+    // 생성된 제출건의 DB ID 기록
+    currentSubmissionId = data[0].id;
+    alert("점검 결과가 생성되었습니다.");
+  });
+
+  // 3. 학생 수정본 저장 (UPDATE)
+  async function saveRevision() {
+    if (!currentSubmissionId) return;
+
+    const revisionText = document.getElementById('revisionContent').value.trim();
+
+    const { error } = await supabase
+      .from('email_submissions')
+      .update({
+        student_revision: revisionText,
+        status: 'revised',
+        updated_at: new Date()
+      })
+      .eq('id', currentSubmissionId);
+
+    if (error) {
+      alert("수정본 저장 실패!");
+    } else {
+      alert("수정본이 성공적으로 저장되었습니다!");
+    }
+  }
+</script>
