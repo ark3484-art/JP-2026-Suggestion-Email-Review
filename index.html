@@ -56,9 +56,9 @@
 
 <script>
   // 🔗 Supabase 정보 입력 칸
-  const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-  const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
-  const supabase = supabase.createClient(dhprptwutteaudkpools, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRocHJwdHd1dHRlYXVka3Bvb2xzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMTQ0MDksImV4cCI6MjEwMzg5MDQwOX0.AThUkbpOkzB-IF_MzekPd0ulbWwm71Lmq2lWU1cXlkY);
+  const SUPABASE_URL = 'dhprptwutteaudkpools';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRocHJwdHd1dHRlYXVka3Bvb2xzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMTQ0MDksImV4cCI6MjEwMzg5MDQwOX0.AThUkbpOkzB-IF_MzekPd0ulbWwm71Lmq2lWU1cXlkY';
+  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   let currentSubmissionId = null;
   let originalText = "";
