@@ -1,64 +1,9 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>English E-mail Review</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body { font-family: 'Pretendard', sans-serif; margin: 0; padding: 20px; background: #f8f9fa; color: #333; }
-    .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    h1 { color: #2c3e50; font-size: 24px; margin-bottom: 8px; }
-    .subtitle { color: #7f8c8d; font-size: 14px; margin-bottom: 24px; }
-    .form-group { margin-bottom: 20px; }
-    label { font-weight: bold; display: block; margin-bottom: 8px; }
-    input[type="text"], textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
-    textarea { height: 180px; resize: vertical; }
-    .btn { background: #4a90e2; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; }
-    .btn:hover { background: #357abd; }
-    .card { background: #f1f3f5; border-radius: 8px; padding: 20px; margin-top: 20px; }
-  </style>
-</head>
-<body>
-
-<div class="container">
-  <h1>English E-mail Review</h1>
-  <p class="subtitle">내가 쓴 영어 E-mail을 점검하고 더 좋은 글로 수정해 봅시다.</p>
-
-  <form id="emailForm">
-    <div class="form-group">
-      <label for="studentInfo">학번이름 (예: 2101 홍길동)</label>
-      <input type="text" id="studentInfo" placeholder="예: 2101 홍길동" required>
-    </div>
-
-    <div class="form-group">
-      <label for="emailContent">내가 작성한 E-mail</label>
-      <textarea id="emailContent" placeholder="여러분이 작성한 E-mail을 영어로 입력하세요..." required></textarea>
-    </div>
-
-    <button type="submit" class="btn" id="submitBtn">E-mail 점검하기</button>
-  </form>
-
-  <div id="loading" style="display:none; text-align: center; margin-top: 20px;">
-    ⏳ E-mail을 분석하고 있어요... (표현, 연결, 필수 조건 점검 중)
-  </div>
-
-  <div id="feedbackResult"></div>
-
-  <div id="revisionSection" style="display:none;" class="card">
-    <h3>✏️ 내가 다시 수정한 E-mail</h3>
-    <p>위의 피드백과 참고용 수정 예시를 바탕으로 글을 다시 수정해 보세요.</p>
-    <button type="button" onclick="copyOriginalText()" style="margin-bottom:10px; padding: 6px 12px; cursor:pointer;">내 원문 불러오기</button>
-    <textarea id="revisionContent"></textarea>
-    <button class="btn" onclick="saveRevision()" style="margin-top:10px; background:#27ae60;">수정본 저장하기</button>
-  </div>
-</div>
-
 <script>
   // 🔗 Supabase 정보 입력 칸
   const SUPABASE_URL = 'dhprptwutteaudkpools';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRocHJwdHd1dHRlYXVka3Bvb2xzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMTQ0MDksImV4cCI6MjEwMzg5MDQwOX0.AThUkbpOkzB-IF_MzekPd0ulbWwm71Lmq2lWU1cXlkY';
-  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  // ⭕ 아래처럼 변수명을 supabaseClient 로 변경합니다.
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); 
 
   let currentSubmissionId = null;
   let originalText = "";
@@ -80,8 +25,8 @@
       });
       const feedback = await res.json();
 
-      // 2. Supabase DB에 저장 (INSERT)
-      const { data, error } = await supabase
+      // 2. Supabase DB에 저장 (supabaseClient 사용)
+      const { data, error } = await supabaseClient
         .from('email_submissions')
         .insert([{
           student_info: studentInfo,
@@ -126,7 +71,7 @@
     if (!currentSubmissionId) return;
     const revisionText = document.getElementById('revisionContent').value.trim();
 
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('email_submissions')
       .update({
         student_revision: revisionText,
@@ -142,5 +87,3 @@
     }
   }
 </script>
-</body>
-</html>
